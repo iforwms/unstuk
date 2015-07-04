@@ -87,6 +87,7 @@ if(isset($_POST['keywords'])){
    // Build query
    $query  = 'SELECT * FROM lastfm.track.search WHERE limit="100" AND page="0" AND api_key="9fdc838fec183c66ff1be03586d6040a" AND track="'.$keywords[0].' '.$keywords[1].'";';
    $query .= 'SELECT * FROM flickr.photos.search WHERE text="'.$keywords[0].' '.$keywords[1].'" AND api_key="47e7c04139b2db4265e0009ba196d7d4" LIMIT 10;';
+   $query .= 'SELECT * FROM deviantart.search WHERE query="'.$keywords[0].' '.$keywords[1].'" LIMIT 10;';
    $query = "SELECT * FROM query.multi WHERE queries='".$query."'";
 
 
@@ -122,54 +123,75 @@ if(isset($_POST['keywords'])){
 
 <?php
 
-if($results[0]->lfm->results->totalResults > 0) {
-   $songs = $results[0]->lfm->results->trackmatches->track;
-
-   if(isset($keywords[1])) {
-      $pattern = "/(\b$keywords[0]\b.+\b$keywords[1]\b|\b$keywords[1]\b.+\b$keywords[0]\b)/i";
-   }
-   else {
-      $pattern = "/(\b$keywords[0]\b)/i";
-   }
-
    // Show related song titles
    echo '<section><h3>Song Titles</h3>'; // <small>('.$results[0]->lfm->results->totalResults.' hits)</small>
-   $i = 0;
-   $closeDiv = '';
-   foreach ($songs as $song){
-      preg_match($pattern, $song->name, $matches);
-      if($i == 6){
-         echo '<div>More songs: <input type="checkbox" class="show-songs"><div class="more-songs">';
-         $closeDiv = '</div></div>';
-         $i++;
+   if($results[0]->lfm->results->totalResults > 0) {
+      $songs = $results[0]->lfm->results->trackmatches->track;
+
+      if(isset($keywords[1])) {
+         $pattern = "/(\b$keywords[0]\b.+\b$keywords[1]\b|\b$keywords[1]\b.+\b$keywords[0]\b)/i";
       }
-      if(!empty($matches)){
-         echo "<p class='song'><a href='$song->url' target='_blank'>$song->name</a> by $song->artist</p>";
+      else {
+         $pattern = "/(\b$keywords[0]\b)/i";
+      }
+
+      $i = 0;
+      $closeDiv = '';
+      foreach ($songs as $song){
+         preg_match($pattern, $song->name, $matches);
+         if($i == 6){
+            echo '<div>More songs: <input type="checkbox" class="show-songs"><div class="more-songs">';
+            $closeDiv = '</div></div>';
+            $i++;
+         }
+         if(!empty($matches)){
+            echo "<p class='song'><a href='$song->url' target='_blank'>$song->name</a> by $song->artist</p>";
+            $i++;
+         }
+      }
+      echo $closeDiv.'</section>';
+   }
+   else {
+      // echo '<section><h3>Song Titles</h3>';
+      echo '<p>Nothing, nada, zero, zilch. New keywords please.</p></section>';
+   }
+
+
+   // Show related images - flickr
+   echo '<section><h3>Flickr</h3>';
+   if(isset($results[1]->photo)){
+      $photos = $results[1]->photo;
+      $i = 0;
+      foreach ($photos as $image){
+         echo "<div class='thumbnail'><img src='https://farm".$image->farm.".staticflickr.com/".$image->server."/".$image->id."_".$image->secret.".jpg'></div>";
          $i++;
+         if($i == 5) break;
       }
    }
-   echo $closeDiv.'</section>';
-}
-else {
-   echo '<section><h3>Song Titles</h3>';
-   echo '<p>Nothing, nada, zero, zilch. New keywords please.</p></section>';
-}
-
-// Show related images
-echo '<section><h3>Images</h3>';
-if(isset($results[1]->photo)){
-   $photos = $results[1]->photo;
-   $i = 0;
-   foreach ($photos as $image){
-      echo "<div class='thumbnail'><img src='https://farm".$image->farm.".staticflickr.com/".$image->server."/".$image->id."_".$image->secret.".jpg'></div>";
-      $i++;
-      if($i == 5) break;
+   else {
+      echo '<p>Consider yourself stuk. Try some other keywords.</p>';
    }
-}
-else {
-   echo '<p>Consider yourself stuk. Try some other keywords.</p></section>';
+   echo '</section>';
 
-}
+   // Show related images - deviantart
+   echo '<section><h3>Devianart</h3>';
+   if(isset($results[2]->root->retval)){
+      $photos = $results[2]->root->retval;
+      $i = 0;
+      foreach ($photos as $image){
+         $imageInfo = $image->item->thumbnail;
+         $imageUrl = $imageInfo[0]->url;
+         echo "<div class='thumbnail'><img src='$imageUrl'></div>";
+         $i++;
+         if($i == 5) break;
+      }
+   }
+   else {
+      echo '<p>Consider yourself stuk. Try some other keywords.</p>';
+   }
+   echo '</section>';
+
+
 }
 else {
 ?>
