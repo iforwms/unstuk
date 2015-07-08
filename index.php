@@ -139,10 +139,12 @@ if(isset($_POST['keywords'])){
       $closeDiv = '';
       foreach ($songs as $song){
          preg_match($pattern, $song->name, $matches);
-         if($i == 6){
-            echo '<div>More songs: <input type="checkbox" class="show-songs"><div class="more-songs">';
-            $closeDiv = '</div></div>';
-            $i++;
+         if(count($songs > 5)){
+            if($i == 5){
+               echo '<div>More songs: <input type="checkbox" class="show-songs"><div class="more-songs">';
+               $closeDiv = '</div></div>';
+               $i++;
+            }
          }
          if(!empty($matches)){
             echo "<p class='song'><a href='$song->url' target='_blank'>$song->name</a> by $song->artist</p>";
