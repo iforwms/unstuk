@@ -106,7 +106,7 @@ if(isset($_POST['keywords'])){
    $output = curl_exec($ch);
 
 
-   // PArse results
+   // Parse results
    $data =  json_decode($output);
    $results = $data->query->results->results;
 
